@@ -3,25 +3,30 @@ import matplotlib
 import matplotlib.pyplot as plt
 from timeit import default_timer
 from polytope_symbolic_system.examples.pendulum import Pendulum
-from r3t.symbolic_system.symbolic_system_basic_rrt import SymbolicSystem_RGRRT
+# from r3t.symbolic_system.al_symbolic_system_rg_rrt import SymbolicSystem_RGRRT
 from pypolycontain.visualization.visualize_2D import visualize_2D_AH_polytope
 from pypolycontain.lib.operations import distance_point_polytope
 from r3t.utils.visualization import visualize_node_tree_2D
 import time
 from datetime import datetime
 import os
+from r3t.symbolic_system.lqr_symbolic_system_rg_rrt import SymbolicSystem_RGRRT
+
 matplotlib.rcParams['font.family'] = "Times New Roman"
 
 global best_distance
-
+global sat_val
 def test_pendulum_planning():
     global best_distance
     best_distance = np.inf
     initial_state = np.zeros(2)
-    pendulum_system = Pendulum(initial_state= initial_state, input_limits=np.asarray([[-1],[1]]), m=1, l=0.5, g=9.8, b=0.1)
+    # initial_state = np.zeros(4)
+    pendulum_system = Pendulum(initial_state= initial_state, input_limits=np.asarray([[-1],[1]]), m=1, l=1, g=9.8, b=0.1) #m=1, l=0.5, g=9.8, b=0.1
     goal_state = np.asarray([np.pi,0.0])
     goal_state_2 = np.asarray([-np.pi,0.0])
     step_size = 0.08
+    linearize = True
+
     def uniform_sampler():
         rnd = np.random.rand(2)
         rnd[0] = (rnd[0]-0.5)*2*1.5*np.pi
@@ -69,12 +74,16 @@ def test_pendulum_planning():
             return True
         return False
 
-    rrt = SymbolicSystem_RGRRT(pendulum_system, uniform_sampler, step_size, reached_goal_function=reached_goal_function)
+    rrt = SymbolicSystem_RGRRT(pendulum_system, uniform_sampler, step_size, reached_goal_function=reached_goal_function, linearize=True)
+    if linearize:
+        linearizable = 'Linearized'
+    else:
+        linearizable = 'Non-linearized'
     found_goal = False
     experiment_name = datetime.fromtimestamp(time.time()).strftime('%Y%m%d_%H-%M-%S')
 
     duration = 0
-    os.makedirs('RG_RRT_Pendulum_'+experiment_name)
+    os.makedirs('./RG_figures/Pendulum/RG_RRT_Pendulum_'+experiment_name)
     while(1):
         start_time = time.time()
         if rrt.build_tree_to_goal_state(goal_state,stop_on_first_reach=True, allocated_time= 100, rewire=False, explore_deterministic_next_state=False) is not None:
@@ -112,8 +121,9 @@ def test_pendulum_planning():
         ax.set_xlabel('$\\theta (rad)$')
         ax.set_ylabel('$\dot{\\theta} (rad/s)$')
         duration += (end_time-start_time)
-        plt.title('RG-RRT after %.2f seconds (explored %d nodes)' %(duration, rrt.node_tally))
-        plt.savefig('RG_RRT_Pendulum_'+experiment_name+'/%.2f_seconds_tree.png' % duration, dpi=500)
+        #plt.title('RG-RRT after %.2f seconds (explored %d nodes)' %(duration, rrt.node_tally))
+        plt.title('RG-RRT after %.2f seconds (explored %d nodes) for %s system' % (duration, rrt.node_tally, linearizable))
+        plt.savefig('./RG_figures/Pendulum/RG_RRT_Pendulum_'+experiment_name+'/%.2f_seconds_tree.png' % duration, dpi=500)
         # plt.show()
         plt.xlim([-4, 4])
         plt.ylim([-10,10])
@@ -124,5 +134,5 @@ def test_pendulum_planning():
             break
 
 if __name__=='__main__':
-    for i in range(10):
+    for i in range(1):
         test_pendulum_planning()

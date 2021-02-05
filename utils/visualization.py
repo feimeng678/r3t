@@ -9,12 +9,12 @@ def visualize_node_tree_2D(rrt, fig=None, ax=None, s=1, linewidths = 0.25, show_
     if fig is None or ax is None:
         fig = plt.figure()
         ax = fig.add_subplot(111)
-    node_queue = deque([rrt.root_node])
+    node_queue = deque([rrt.root_node]) # benefoit to left oper
     lines = []
     i = 0
     while node_queue:
         i+=1
-        node = node_queue.popleft()
+        node = node_queue.popleft() # popleft:selec and remove it from the list
         #handle indexing
         if dims:
             state = np.ndarray.flatten(node.state)[dims]
@@ -71,7 +71,7 @@ def visualize_node_tree_2D(rrt, fig=None, ax=None, s=1, linewidths = 0.25, show_
         ax.add_collection(lc)
     return fig, ax
 
-def visualize_node_tree_2D_old(rrt, fig=None, ax=None, s=1, linewidths = 0.25, show_path_to_goal=False, goal_override=None, dims=None):
+def visualize_node_tree_2D_old(rrt, fig=None, ax=None, s=1, linewidths = 0.25, show_path_to_goal=False, goal_override=None, dims=[0,1]):#None
     """
     Deprecated function for visualizing RRT trees with no true dynamics path (prior to 9/9/19)
     :param rrt:
@@ -127,7 +127,6 @@ def visualize_node_tree_2D_old(rrt, fig=None, ax=None, s=1, linewidths = 0.25, s
             # hack for 1D hopper visualization
             if node.parent==rrt.root_node:
                 goal_lines.append([np.ndarray.flatten(node.true_dynamics_path[-1])[dims], np.ndarray.flatten(node.parent.state)[dims]])
-
             node = node.parent
         line_colors = np.full(len(lines), 'gray')
         line_widths = np.full(len(lines), linewidths)

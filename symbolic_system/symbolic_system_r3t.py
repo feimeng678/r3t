@@ -175,6 +175,7 @@ class PolytopeReachableSetTree(ReachableSetTree):
         # self.state_idx = None
         # self.state_tree_p = index.Property()
         self.distance_scaling_array = distance_scaling_array
+
     def insert(self, state_id, reachable_set):
         try:
             iter(reachable_set.polytope_list)

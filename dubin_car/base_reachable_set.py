@@ -4,7 +4,7 @@ import numpy as np
 from r3t.common.r3t import *
 import os
 from collections import deque
-from utils.utils import *
+from r3t.utils.utils import *
 from closest_polytope_algorithms.bounding_box.box import AABB, point_in_box
 import dubins
 from timeit import default_timer

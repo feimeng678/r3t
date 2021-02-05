@@ -12,13 +12,18 @@ from datetime import datetime
 import os
 matplotlib.rcParams['font.family'] = "Times New Roman"
 
+global best_distance
 
 def test_pendulum_planning():
+    global best_distance
+    best_distance = np.inf
     initial_state = np.zeros(2)
     pendulum_system = Pendulum(initial_state= initial_state, input_limits=np.asarray([[-1],[1]]), m=1, l=0.5, g=9.8, b=0.1)
     goal_state = np.asarray([np.pi,0.0])
     goal_state_2 = np.asarray([-np.pi,0.0])
-    step_size = 0.01
+    step_size = 0.08
+    linearlize = True
+
     def uniform_sampler():
         rnd = np.random.rand(2)
         rnd[0] = (rnd[0]-0.5)*2*1.5*np.pi
@@ -57,17 +62,26 @@ def test_pendulum_planning():
         return rnd
 
     def reached_goal_function(state, goal_state):
-        if np.linalg.norm(state-goal_state)<5e-2 or np.linalg.norm(state-goal_state_2)<5e-2:
+        global best_distance
+        d1 = np.linalg.norm(state-goal_state)
+        d2 = np.linalg.norm(state-goal_state_2)
+        best_distance = min(best_distance, min(d1, d2))
+        if d1<5e-2 or d2<5e-2:
             print('Goal error %f' %min(np.linalg.norm(state-goal_state), np.linalg.norm(state-goal_state_2)))
             return True
         return False
 
-    rrt = SymbolicSystem_Basic_RRT(pendulum_system, uniform_sampler, step_size, reached_goal_function=reached_goal_function)
+
+    rrt = SymbolicSystem_Basic_RRT(pendulum_system, uniform_sampler, step_size, reached_goal_function=reached_goal_function, linearlize=True)
+    if linearlize:
+        linearizable = 'Linearized'
+    else:
+        linearizable = 'Non-linearized'
     found_goal = False
     experiment_name = datetime.fromtimestamp(time.time()).strftime('%Y%m%d_%H-%M-%S')
 
     duration = 0
-    os.makedirs('Basic_RRT_Pendulum_'+experiment_name)
+    os.makedirs('./Basic_figures/Pendulum/Basic_RRT_Pendulum_'+experiment_name)
     while(1):
         start_time = time.time()
         if rrt.build_tree_to_goal_state(goal_state,stop_on_first_reach=True, allocated_time= 100, rewire=True, explore_deterministic_next_state=False) is not None:
@@ -80,11 +94,13 @@ def test_pendulum_planning():
                 goal_override = np.asarray([np.pi,0.0])
             else:
                 goal_override = np.asarray([-np.pi, 0.0])
+            rrt.goal_node.children = []
+            rrt.goal_node.true_dynamics_path = [p, goal_override]
         # Plot state tree
         fig = plt.figure()
         ax = fig.add_subplot(111)
         if found_goal:
-            fig, ax = visualize_node_tree_2D_old(rrt, fig, ax, s=0.5, linewidths=0.15, show_path_to_goal=found_goal, goal_override=goal_override)
+            fig, ax = visualize_node_tree_2D_old(rrt, fig, ax, s=0.5, linewidths=0.15, show_path_to_goal=True, goal_override=goal_override)
         else:
             fig, ax = visualize_node_tree_2D_old(rrt, fig, ax, s=0.5, linewidths=0.15, show_path_to_goal=found_goal)
         # fig, ax = visZ(reachable_polytopes, title="", alpha=0.07, fig=fig,  ax=ax, color='gray')
@@ -104,7 +120,8 @@ def test_pendulum_planning():
         ax.set_ylabel('$\dot{\\theta} (rad/s)$')
 
         duration += (end_time-start_time)
-        plt.title('RRT Tree after %.2f seconds (explored %d nodes)' %(duration, rrt.node_tally))
+
+        plt.title('RRT Tree after %.2f seconds (explored %d nodes) for %s system' %(duration, rrt.node_tally, linearizable))
         plt.savefig('Basic_RRT_Pendulum_'+experiment_name+'/%.2f_seconds_tree.png' % duration, dpi=500)
         # plt.show()
         plt.xlim([-4, 4])

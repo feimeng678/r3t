@@ -6,10 +6,10 @@ from collections import deque
 # import cPickle as pickle
 # import dill
 import os
-from utils.utils import *
-import dubin_car.base_reachable_set
+from r3t.utils.utils import *
+import r3t.dubin_car.base_reachable_set
 import sys
-from dubin_car.base_reachable_set import *
+from r3t.dubin_car.base_reachable_set import *
 import dubins
 from time import time
 from closest_polytope_algorithms.bounding_box.box import AABB, point_in_box

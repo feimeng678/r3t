@@ -18,6 +18,7 @@ goal_tolerance = 5e-2
 input_limit = 1
 input_samples = 9
 
+
 def test_pendulum_planning():
     initial_state = np.zeros(2)
 
@@ -85,7 +86,7 @@ def test_pendulum_planning():
     experiment_name = datetime.fromtimestamp(time.time()).strftime('%Y%m%d_%H-%M-%S')
 
     duration = 0
-    os.makedirs('R3T_Pendulum_'+experiment_name)
+    os.makedirs('./R3T_figures/Pendulum/R3T_Pendulum_'+experiment_name)
     allocated_time = 0.1
     while(1):
         start_time = time.time()

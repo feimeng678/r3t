@@ -1,7 +1,10 @@
-from dubin_car.dubin_car_rg_rrt_star import *
-from dubin_car.visualize.visualize_dc_rg_rrt_star import *
-import dubin_car.base_reachable_set
+from r3t.dubin_car.dubin_car_rg_rrt_star import *
+from r3t.dubin_car.visualize.visualize_dc_rg_rrt_star import *
+import r3t.dubin_car.base_reachable_set
 from timeit import default_timer
+import numpy as np
+from r3t.dubin_car.dubin_car_rg_rrt_star import DC_R3T, DC_Map
+
 
 def test_simple_empty_world():
     world_bound = AABB([(0, 0), (30, 30)])
